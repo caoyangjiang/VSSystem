@@ -3,3 +3,5 @@ project(modules)
 
 add_subdirectory(CUDASample)
 add_subdirectory(Sample)
+add_subdirectory(RTPServer)
+add_subdirectory(CpuEncoder)

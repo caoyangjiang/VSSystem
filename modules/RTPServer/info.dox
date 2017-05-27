@@ -1,0 +1,5 @@
+/*!
+  \addtogroup IEService IEService
+
+  The <b> IEService </b> handls multiple client information exchange.
+*/
