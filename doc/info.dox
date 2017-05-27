@@ -1,0 +1,6 @@
+/** \mainpage hvr-codec API Documentation
+
+The <b>hvr-codec</b> is the library for encoding, decoding, and encrypting all HypeVR proprietary bitstreams. For more information, visit
+<a href=http://www.hypevr.com>HypeVR</a>.
+
+*/
