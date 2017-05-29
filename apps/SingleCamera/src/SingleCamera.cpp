@@ -5,6 +5,7 @@
 #include <iostream>
 #include <thread>
 #include "Jcy/Camera/Camera.h"
+#include "Jcy/CpuEncoder/VideoEncoder.h"
 
 int main()
 {
@@ -38,13 +39,23 @@ int main()
   std::this_thread::sleep_for(std::chrono::seconds(1));
 
   int capcnt = 0;
-  std::ofstream testfile("test.yuv",
+  jcy::VideoEncoder encoder;
+  encoder.Initialize(800, 600, 1, 60);
+
+  std::ofstream testfile("test.h264",
                          std::ios::out | std::ios::binary | std::ios::trunc);
-  while (capcnt != 30)
+  while (capcnt != 300)
   {
-    testfile.write(reinterpret_cast<const char*>(cams[0].GetCurrFrame().data()),
-                   cams[0].GetCurrFrame().size());
-    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    size_t bssize       = 0;
+    const uint8_t* bits = nullptr;
+    encoder.EncodeAFrame(cams[0].GetCurrFrame().data());
+    encoder.GetBitStream(bits, bssize);
+    testfile.write(reinterpret_cast<const char*>(bits),
+                   static_cast<std::streamsize>(bssize));
+    // testfile.write(reinterpret_cast<const
+    // char*>(cams[0].GetCurrFrame().data()),
+    //                cams[0].GetCurrFrame().size());
+    std::this_thread::sleep_for(std::chrono::milliseconds(16));
     capcnt++;
   }
 

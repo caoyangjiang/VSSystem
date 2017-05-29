@@ -122,8 +122,6 @@ void Camera::StreamCallback(uvc_frame_t* frame, void* ptr)
   std::memcpy(cam->internalbuffer_.data(),
               yuvimg.data,
               yuvimg.size().height * yuvimg.size().width);
-  std::cout << "in: " << static_cast<uint32_t>(cam->internalbuffer_[0]) << " "
-            << static_cast<uint32_t>(cam->internalbuffer_[1]) << std::endl;
   qlock.unlock();
 
   // Display

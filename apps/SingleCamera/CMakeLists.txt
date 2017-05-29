@@ -9,7 +9,7 @@ source_group("src" FILES ${PROJECT_SRCS})
 
 add_executable(${PROJECT_NAME} ${PROJECT_SRCS})
 
-target_link_libraries(${PROJECT_NAME} jcy_camera)
+target_link_libraries(${PROJECT_NAME} jcy_camera jcy_cpuencoder)
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER ${CMAKE_PROJECT_NAME}/apps)
 

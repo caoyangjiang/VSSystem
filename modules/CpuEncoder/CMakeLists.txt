@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.7)
-project(hvr_codecutility)
+project(jcy_cpuencoder)
 
 if(MSVC)
   set(DLLEXPORT "__declspec(dllexport)")
