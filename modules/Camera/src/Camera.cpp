@@ -3,6 +3,7 @@
 #include "Jcy/Camera/Camera.h"
 
 JCY_WINDOWS_DISABLE_ALL_WARNING
+#include <cstring>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -96,7 +97,7 @@ void Camera::DestroyDeviceList()
   uvc_free_device_list(devicelist_, 1);
 }
 
-void Camera::StreamCallback(uvc_frame_t* frame, void*)
+void Camera::StreamCallback(uvc_frame_t* frame, void* ptr)
 {
   cv::Mat mjpeg = cv::Mat(
       1, frame->data_bytes, CV_8UC1, reinterpret_cast<uint8_t*>(frame->data));
@@ -113,35 +114,22 @@ void Camera::StreamCallback(uvc_frame_t* frame, void*)
   devimg.upload(img);
   cv::cuda::fastNlMeansDenoisingColored(devimg, devdenoised, 10, 10, 7, 21);
   devdenoised.download(hostdenoised);
+
+  cv::Mat yuvimg;
+  Camera* cam = reinterpret_cast<Camera*>(ptr);
+  cv::cvtColor(hostdenoised, yuvimg, cv::COLOR_BGR2YUV_I420);
+  std::unique_lock<std::mutex> qlock(cam->bufferaccess_);
+  std::memcpy(cam->internalbuffer_.data(),
+              yuvimg.data,
+              yuvimg.size().height * yuvimg.size().width);
+  std::cout << "in: " << static_cast<uint32_t>(cam->internalbuffer_[0]) << " "
+            << static_cast<uint32_t>(cam->internalbuffer_[1]) << std::endl;
+  qlock.unlock();
+
+  // Display
   cv::namedWindow("Test", CV_WINDOW_AUTOSIZE);
   cv::imshow("Test", hostdenoised);
   cv::waitKey(10);
-
-  // uvc_frame_t* bgr;
-  // uvc_error_t ret;
-  // bgr = uvc_allocate_frame(frame->width * frame->height * 3);
-
-  // if (!bgr)
-  // {
-  //   printf("unable to allocate bgr frame!");
-  //   return;
-  // }
-  // ret = uvc_any2bgr(frame, bgr);
-  // if (ret)
-  // {
-  //   uvc_perror(ret, "uvc_any2bgr");
-  //   uvc_free_frame(bgr);
-  //   return;
-  // }
-
-  // IplImage* cvImg =
-  //     cvCreateImageHeader(cvSize(bgr->width, bgr->height), IPL_DEPTH_8U, 3);
-  // cvSetData(cvImg, bgr->data, bgr->width * 3);
-  // cvNamedWindow("Test", CV_WINDOW_AUTOSIZE);
-  // cvShowImage("Test", cvImg);
-  // cvWaitKey(10);
-  // cvReleaseImageHeader(&cvImg);
-  // uvc_free_frame(bgr);
 }
 
 Camera::Camera()
@@ -198,7 +186,8 @@ bool Camera::Initialize(uvc_device_t* camdev,
   framerate_ = framerate;
   width_     = width;
   height_    = height;
-
+  internalbuffer_.resize(width * height * 3 / 2);  // yuv420  buffer
+  externalbuffer_.resize(width * height * 3 / 2);  // yuv420  buffer
   return true;
 }
 
@@ -210,8 +199,8 @@ void Camera::Destroy()
 
 void Camera::StartCapture()
 {
-  uvc_error_t ret = uvc_start_streaming(
-      camdevh_, &camctrl_, Camera::StreamCallback, nullptr, 0);
+  uvc_error_t ret =
+      uvc_start_streaming(camdevh_, &camctrl_, Camera::StreamCallback, this, 0);
 
   if (ret < 0)
   {
@@ -239,9 +228,14 @@ int Camera::GetFrameRate() const
   return framerate_;
 }
 
-const std::vector<uint8_t>& Camera::GetCurrFrame() const
+const std::vector<uint8_t>& Camera::GetCurrFrame()
 {
-  return buffer_;
+  std::unique_lock<std::mutex> qlock(bufferaccess_);
+  std::memcpy(
+      externalbuffer_.data(), internalbuffer_.data(), internalbuffer_.size());
+  qlock.unlock();
+
+  return externalbuffer_;
 }
 
 int Camera::GetCameraID() const

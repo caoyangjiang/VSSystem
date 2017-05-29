@@ -103,7 +103,7 @@ class Camera
    *
    * @return     The curr frame.
    */
-  const std::vector<uint8_t>& GetCurrFrame() const;
+  const std::vector<uint8_t>& GetCurrFrame();
 
   /**
    * @brief      Gets the camera id.
@@ -112,13 +112,16 @@ class Camera
    */
   int GetCameraID() const;
 
+ public:
+  std::mutex bufferaccess_;
+  std::vector<uint8_t> internalbuffer_;
+  std::vector<uint8_t> externalbuffer_;
+
  private:
   int width_     = -1;
   int height_    = -1;
   int framerate_ = -1;
   int camid_     = -1;
-  // std::mutex bufferaccess_;
-  std::vector<uint8_t> buffer_;
 
   static uvc_context_t* globalctx_;
   static uvc_device_t** devicelist_;
