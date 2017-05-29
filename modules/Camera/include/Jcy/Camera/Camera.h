@@ -4,6 +4,7 @@
 #define MODULES_CAMERA_INCLUDE_JCY_CAMERA_CAMERA_H_
 
 JCY_WINDOWS_DISABLE_ALL_WARNING
+#include <mutex>
 #include <string>
 #include <vector>
 #include "libuvc/libuvc.h"
@@ -116,6 +117,7 @@ class Camera
   int height_    = -1;
   int framerate_ = -1;
   int camid_     = -1;
+  // std::mutex bufferaccess_;
   std::vector<uint8_t> buffer_;
 
   static uvc_context_t* globalctx_;

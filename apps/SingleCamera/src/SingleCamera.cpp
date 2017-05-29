@@ -27,14 +27,14 @@ int main()
 
   for (size_t devid = 0; devid < devices.size(); devid++)
   {
-    if (!cams[devid].Initialize(devices[devid], 30, 1920, 1080))
+    if (!cams[devid].Initialize(devices[devid], 60, 800, 600))
     {
       return -1;
     }
   }
 
   cams[0].StartCapture();
-  std::this_thread::sleep_for(std::chrono::seconds(100));
+  std::this_thread::sleep_for(std::chrono::seconds(1));
   cams[0].StopCapture();
 
   for (auto cam : cams)

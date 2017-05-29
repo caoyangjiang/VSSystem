@@ -8,8 +8,10 @@ JCY_WINDOWS_DISABLE_ALL_WARNING
 #include <vector>
 #include "libuvc/libuvc.h"
 #include "opencv2/core/core.hpp"
+#include "opencv2/core/cuda.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/opencv.hpp"
+#include "opencv2/photo/cuda.hpp"
 JCY_WINDOWS_ENABLE_ALL_WARNING
 
 namespace jcy
@@ -105,8 +107,14 @@ void Camera::StreamCallback(uvc_frame_t* frame, void*)
     std::cout << "[ERROR]: Parsing mjpeg failed." << std::endl;
   }
 
+  cv::Mat hostdenoised;
+  cv::cuda::GpuMat devimg;
+  cv::cuda::GpuMat devdenoised;
+  devimg.upload(img);
+  cv::cuda::fastNlMeansDenoisingColored(devimg, devdenoised, 10, 10, 7, 21);
+  devdenoised.download(hostdenoised);
   cv::namedWindow("Test", CV_WINDOW_AUTOSIZE);
-  cv::imshow("Test", img);
+  cv::imshow("Test", hostdenoised);
   cv::waitKey(10);
 
   // uvc_frame_t* bgr;
