@@ -53,6 +53,7 @@ install(TARGETS ${PROJECT_NAME}
         RUNTIME DESTINATION bin)
 
 install(FILES
+  ${PROJECT_SOURCE_DIR}/include/Jcy/RTPServer/RTPSession.h
   ${PROJECT_SOURCE_DIR}/include/Jcy/RTPServer/RTPH264Builder.h
   ${PROJECT_SOURCE_DIR}/include/Jcy/RTPServer/RTPPacket.h
   DESTINATION include/Jcy/RTPServer)

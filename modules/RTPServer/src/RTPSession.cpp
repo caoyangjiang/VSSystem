@@ -72,13 +72,10 @@ bool RTPSession::Packetize(const uint8_t* bitstream,
   std::vector<Nalu> nalus;
   NaluTools::SplitNaluStream(bitstream, size, nalus);
 
-  std::cout << "Find: " << nalus.size() << std::endl;
-
   for (size_t c = 0; c < nalus.size(); c++)
   {
     if (nalus[c].GetSize() > MTU_ADJUSTED_RTP_MAXIMUM_PAYLOAD_SIZE)
     {
-      std::cout << "Fragment" << std::endl;
       std::vector<Nalu> frags;
       nalus[c].Fragment(MTU_ADJUSTED_RTP_MAXIMUM_PAYLOAD_SIZE, frags);
       seqnum_ = pktbuilder_->BuildFragment(frags, ts, seqnum_, pkts);

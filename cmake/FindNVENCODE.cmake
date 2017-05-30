@@ -29,13 +29,13 @@ find_library(NVENCODE_LIBRARY
   DOC "NVENCODE library")
 
 # Look for library
-find_library(CU_LIBRARY
-  NAMES cuda
-  PATHS ${NVCUVID_ROOT_DIR}/lib/x64
-        ${NVENCODE_ROOT_DIR}/lib/x64
-        /usr/lib/x86_64-linux-gnu
-  DOC "CUDA library"
-  NO_DEFAULT_PATH)
+# find_library(CU_LIBRARY
+#   NAMES cuda
+#   PATHS ${NVCUVID_ROOT_DIR}/lib/x64
+#         ${NVENCODE_ROOT_DIR}/lib/x64
+#         /usr/lib/x86_64-linux-gnu
+#   DOC "CUDA library"
+#   NO_DEFAULT_PATH)
 
 find_library(CUDART_STATIC_LIBRARY
   NAMES cudart
@@ -89,7 +89,7 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(NVENCODE REQUIRED_VARS
                                   NVENCODE_INCLUDE_DIR
                                   NVENCODE_LIBRARY
-                                  CU_LIBRARY
+                                  #CU_LIBRARY
                                   CUDART_STATIC_LIBRARY
                                   VERSION_VAR
                                   NVENCODE_VERSION_STRING)
@@ -101,7 +101,7 @@ if(NVENCODE_FOUND)
 
   set(NVENCODE_LIBRARIES
     ${NVENCODE_LIBRARY}
-    ${CU_LIBRARY}
+    #${CU_LIBRARY}
     ${CUDART_STATIC_LIBRARY}
     CACHE PATH "NVENCODE libraries")
 endif()
