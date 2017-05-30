@@ -10,6 +10,10 @@
 #include "Jcy/RTPServer/RTPSession.h"
 #include "boost/asio.hpp"
 
+int targetwidth     = 1024;
+int targetheight    = 768;
+int targetframerate = 30;
+
 int main(int argc, char** argv)
 {
   if (argc < 2)
@@ -38,7 +42,8 @@ int main(int argc, char** argv)
 
   for (size_t devid = 0; devid < devices.size(); devid++)
   {
-    if (!cams[devid].Initialize(devices[devid], 30, 1024, 768))
+    if (!cams[devid].Initialize(
+            devices[devid], targetframerate, targetwidth, targetheight))
     {
       return -1;
     }
@@ -53,7 +58,8 @@ int main(int argc, char** argv)
   jcy::RTPSession rtpsession;
 
   if (!rtpsession.Initialize()) return -1;
-  if (!encoder.Initialize(1024, 768, 1, 30)) return -1;
+  if (!encoder.Initialize(targetwidth, targetheight, 1, targetframerate))
+    return -1;
   boost::asio::io_service io_service;
   boost::asio::ip::udp::socket socket(
       io_service,
@@ -71,15 +77,26 @@ int main(int argc, char** argv)
 
   std::ofstream testfile("test.h264",
                          std::ios::out | std::ios::binary | std::ios::trunc);
-  while (capcnt != 900)
-  // while (true)
+  // while (capcnt != 300)
+  while (true)
   {
+    std::chrono::duration<double, std::milli> dur;
+    std::chrono::high_resolution_clock::time_point beg, end;
     size_t bssize       = 0;
     const uint8_t* bits = nullptr;
+
+    beg = std::chrono::high_resolution_clock::now();
     encoder.EncodeAFrame(cams[0].GetCurrFrame().data());
     encoder.GetBitStream(bits, bssize);
-    testfile.write(reinterpret_cast<const char*>(bits),
-                   static_cast<std::streamsize>(bssize));
+
+    // Write encoded
+    // testfile.write(reinterpret_cast<const char*>(bits),
+    //                static_cast<std::streamsize>(bssize));
+
+    // Write raw
+    // testfile.write(reinterpret_cast<const
+    // char*>(cams[0].GetCurrFrame().data()),
+    //                cams[0].GetCurrFrame().size());
 
     std::vector<std::vector<uint8_t>> pktsbytes;
 
@@ -97,11 +114,17 @@ int main(int argc, char** argv)
             remoteendpoint);
       }
     }
+    end = std::chrono::high_resolution_clock::now();
+    dur = end - beg;
 
-    // testfile.write(reinterpret_cast<const
-    // char*>(cams[0].GetCurrFrame().data()),
-    //                cams[0].GetCurrFrame().size());
-    std::this_thread::sleep_for(std::chrono::milliseconds(30));
+    int durms = dur.count();
+    int sleepms =
+        durms >= 1000 / targetframerate ? 0 : (1000 / targetframerate - durms);
+
+    if (sleepms != 0)
+      std::this_thread::sleep_for(std::chrono::milliseconds(sleepms));
+
+    // std::cout << "Sleep for " << sleepms << " ms."<< std::endl;
     capcnt++;
   }
 
