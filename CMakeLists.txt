@@ -136,7 +136,7 @@ add_subdirectory(modules)
 add_subdirectory(apps)
 add_subdirectory(doc)
 
-option(UNIT_TEST "Run unit tests" ON)
+option(UNIT_TEST "Run unit tests" OFF)
 
 if(UNIT_TEST AND (NOT BUILD_CODEC_ESSENTIAL))
   add_subdirectory(unit-test)
@@ -146,4 +146,5 @@ install(FILES
         ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}Config.cmake
         DESTINATION lib/cmake/${CMAKE_PROJECT_NAME})
 
-install(EXPORT ${CMAKE_PROJECT_NAME}Targets DESTINATION lib/cmake/${CMAKE_PROJECT_NAME})
+install(EXPORT ${CMAKE_PROJECT_NAME}Targets
+        DESTINATION lib/cmake/${CMAKE_PROJECT_NAME})

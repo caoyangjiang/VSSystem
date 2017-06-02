@@ -78,7 +78,7 @@ class MultiCamera
    *
    * @return     The curr frame.
    */
-  const std::map<int, std::vector<uint8_t>>& GetCurrFrame();
+  const std::vector<uint8_t>& GetCurrFrame(int deviceid);
 
   /**
    * @brief      Gets the device IDs.

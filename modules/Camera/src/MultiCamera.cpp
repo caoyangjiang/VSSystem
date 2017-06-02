@@ -15,6 +15,7 @@ JCY_WINDOWS_DISABLE_ALL_WARNING
 #include <sys/time.h>
 #include <sys/types.h>
 #include <algorithm>
+#include <chrono>
 #include <cstring>
 #include <iostream>
 #include <string>
@@ -92,19 +93,41 @@ void MultiCamera::StreamThread()
         v4l2buf.memory = V4L2_MEMORY_MMAP;
         xioctl(fd, VIDIOC_DQBUF, reinterpret_cast<void*>(&v4l2buf));
 
-        cv::Mat frame;
         cv::Mat cvmat = cv::Mat(
             height_,
             width_,
             CV_8UC3,
             reinterpret_cast<void*>(devicefrmbuf_[fd][v4l2buf.index].addr));
 
-        frame                  = cv::imdecode(cvmat, 1);
-        std::string windowname = std::string("Window for device ") + id_[fd];
-        cv::namedWindow(windowname, CV_WINDOW_AUTOSIZE);
-        cv::imshow(windowname, frame);
-        cv::waitKey(10);
+        cv::Mat img = cv::imdecode(cvmat, 1);
+        if (img.data == nullptr)
+        {
+          std::cout << "[ERROR]: Parsing mjpeg failed. thread exit"
+                    << std::endl;
+          return;
+        }
+
+        /*
+         *
+         *  Any image processing goes here
+         *
+         *
+         */
+
+        cv::Mat yuvimg;
+        cv::cvtColor(img, yuvimg, cv::COLOR_BGR2YUV_I420);
+
+        std::unique_lock<std::mutex> qlock(bufferaccess_);
+        std::memcpy(internalbuffer_[fd].data(),
+                    yuvimg.data,
+                    yuvimg.size().height * yuvimg.size().width);
+        qlock.unlock();
         xioctl(fd, VIDIOC_QBUF, &v4l2buf);
+
+        // std::string windowname = std::string("Window for device ") + id_[fd];
+        // cv::namedWindow(windowname, CV_WINDOW_AUTOSIZE);
+        // cv::imshow(windowname, img);
+        // cv::waitKey(10);
       }
     }
   }
@@ -283,6 +306,7 @@ Done1:
 
   // Start streaming thread
   streamthread_ = std::thread(&MultiCamera::StreamThread, this);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
   return true;
 }
 
@@ -337,7 +361,7 @@ int MultiCamera::GetFrameRate() const
   return framerate_;
 }
 
-const std::map<int, std::vector<uint8_t>>& MultiCamera::GetCurrFrame()
+const std::vector<uint8_t>& MultiCamera::GetCurrFrame(int deviceid)
 {
   std::unique_lock<std::mutex> qlock(bufferaccess_);
   for (auto fd : fds_)
@@ -347,7 +371,7 @@ const std::map<int, std::vector<uint8_t>>& MultiCamera::GetCurrFrame()
                 internalbuffer_[fd].size());
   }
   qlock.unlock();
-  return externalbuffer_;
+  return externalbuffer_[deviceid];
 }
 
 int MultiCamera::GetDeviceIDByName(const std::string& dev) const
