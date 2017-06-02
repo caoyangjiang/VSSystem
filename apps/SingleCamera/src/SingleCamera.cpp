@@ -124,7 +124,6 @@ int main(int argc, char** argv)
     if (sleepms != 0)
       std::this_thread::sleep_for(std::chrono::milliseconds(sleepms));
 
-    // std::cout << "Sleep for " << sleepms << " ms."<< std::endl;
     capcnt++;
   }
 

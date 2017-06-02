@@ -19,8 +19,9 @@ ${PROJECT_SOURCE_DIR}/include/Jcy/Camera/Camera.h
 source_group("include" FILES ${PROJECT_INCS})
 source_group("src"     FILES ${PROJECT_SRCS})
 
+find_package( PkgConfig REQUIRED )
 find_package( OpenCV REQUIRED )
-
+pkg_check_modules( libv4l2 libv4l2 )
 add_library(${PROJECT_NAME} SHARED ${PROJECT_SRCS} ${PROJECT_INCS})
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC
@@ -41,7 +42,7 @@ target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
                           ${OpenCV_INCLUDE_DIRS})
 
 # target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
-target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} uvc)
+target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} uvc v4l2)
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY
             FOLDER ${CMAKE_PROJECT_NAME}/modules)

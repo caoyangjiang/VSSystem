@@ -125,8 +125,9 @@ void Camera::StreamCallback(uvc_frame_t* frame, void* ptr)
   qlock.unlock();
 
   // Display
-  // cv::namedWindow("Test", CV_WINDOW_AUTOSIZE);
-  // cv::imshow("Test", img);
+  // std::string winname = "Test" + std::to_string(cam->GetCameraID());
+  // cv::namedWindow(winname, CV_WINDOW_AUTOSIZE);
+  // cv::imshow(winname, img);
   // cv::waitKey(10);
 }
 

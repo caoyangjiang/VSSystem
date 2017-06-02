@@ -4,6 +4,8 @@
 #define MODULES_CAMERA_INCLUDE_JCY_CAMERA_CAMERA_H_
 
 JCY_WINDOWS_DISABLE_ALL_WARNING
+#include <libv4l2.h>
+#include <linux/videodev2.h>
 #include <mutex>
 #include <string>
 #include <vector>
