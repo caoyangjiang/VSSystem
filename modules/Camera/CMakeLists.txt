@@ -10,10 +10,12 @@ endif()
 
 set(PROJECT_SRCS
 ${PROJECT_SOURCE_DIR}/src/Camera.cpp
+${PROJECT_SOURCE_DIR}/src/MultiCamera.cpp
 )
 
 set(PROJECT_INCS
 ${PROJECT_SOURCE_DIR}/include/Jcy/Camera/Camera.h
+${PROJECT_SOURCE_DIR}/include/Jcy/Camera/MultiCamera.h
 )
 
 source_group("include" FILES ${PROJECT_INCS})
