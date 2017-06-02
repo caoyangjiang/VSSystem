@@ -189,7 +189,7 @@ bool GpuVideoEncoder::Initialize(int width,
   std::memset(&encodecfg_, 0, sizeof(NV_ENC_CONFIG));
   std::memcpy(&encodecfg_, &presetcfg_, sizeof(NV_ENC_CONFIG));
   encodecfg_.gopLength                 = gopsize_;  // NVENC_INFINITE_GOPLENGTH;
-  encodecfg_.frameIntervalP            = 0;         // IPP structure
+  encodecfg_.frameIntervalP            = 1;         // IPP structure
   encodecfg_.frameFieldMode            = NV_ENC_PARAMS_FRAME_FIELD_MODE_FRAME;
   encodecfg_.mvPrecision               = NV_ENC_MV_PRECISION_HALF_PEL;
   encodecfg_.rcParams.rateControlMode  = NV_ENC_PARAMS_RC_CONSTQP;

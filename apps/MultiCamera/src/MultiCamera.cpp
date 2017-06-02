@@ -36,7 +36,7 @@ int main(int argc, char** argv)
   jcy::RTPSession rtpsession;
 
   if (!rtpsession.Initialize()) return -1;
-  if (!encoder.Initialize(targetwidth, targetheight, 1, targetframerate))
+  if (!encoder.Initialize(targetwidth, targetheight, 3, targetframerate))
     return -1;
   boost::asio::io_service io_service;
   boost::asio::ip::udp::socket socket(
