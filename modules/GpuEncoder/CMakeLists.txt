@@ -60,7 +60,7 @@ install(TARGETS ${PROJECT_NAME}
 
 install(FILES
   ${PROJECT_SOURCE_DIR}/include/Jcy/GpuEncoder/GpuVideoEncoder.h
-  DESTINATION include/Jcy/CpuEncoder)
+  DESTINATION include/Jcy/GpuEncoder)
 
 export(TARGETS
       ${PROJECT_NAME}
@@ -68,4 +68,4 @@ export(TARGETS
 
 file(APPEND
     ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}Config.cmake
-    "set(JCY_CODEC_LIBRARIES \${JCY_CODEC_LIBRARIES} ${PROJECT_NAME})\n")
+    "set(JCY_VSSYSTEM_LIBRARIES \${JCY_VSSYSTEM_LIBRARIES} ${PROJECT_NAME})\n")

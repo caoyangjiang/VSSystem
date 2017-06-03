@@ -10,12 +10,15 @@ source_group("src" FILES ${PROJECT_SRCS})
 add_executable(${PROJECT_NAME} ${PROJECT_SRCS})
 
 find_package( Boost 1.58 COMPONENTS system REQUIRED )
+find_package( OpenCV REQUIRED )
 
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
-                          ${Boost_INCLUDE_DIRS})
+                          ${Boost_INCLUDE_DIRS}
+                          ${OpenCV_INCLUDE_DIRS})
 
 target_link_libraries(${PROJECT_NAME}
                               ${Boost_LIBRARIES}
+                              ${OpenCV_LIBS}
                               jcy_camera
                               jcy_cpuencoder
                               jcy_gpuencoder

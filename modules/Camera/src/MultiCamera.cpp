@@ -25,8 +25,8 @@ JCY_WINDOWS_DISABLE_ALL_WARNING
 #include "opencv2/core/cuda.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/opencv.hpp"
-#include "opencv2/photo/cuda.hpp"
-#include "opencv2/xphoto.hpp"
+// #include "opencv2/photo/cuda.hpp"
+// #include "opencv2/xphoto.hpp"
 JCY_WINDOWS_ENABLE_ALL_WARNING
 
 namespace jcy
@@ -103,44 +103,46 @@ void MultiCamera::StreamThread()
         cv::Mat img = cv::imdecode(cvmat, 1);
         if (img.data == nullptr)
         {
-	  // Camera sometimes will generate a corrupted mjpeg file.
+          // Camera sometimes will generate a corrupted mjpeg file.
           std::cout << "[ERROR]: Parsing mjpeg failed. thread exit"
                     << std::endl;
           continue;
         }
 
-	double alpha  = 1;//contrast
-	int beta = 10;//brightness
-	cv::Mat adjustedimg = cv::Mat::zeros(img.size(), img.type());
+        // double alpha  = 1;//contrast
+        // int beta = 10;//brightness
+        // cv::Mat adjustedimg = cv::Mat::zeros(img.size(), img.type());
 
-        for( int y = 0; y < img.rows; y++ )
-        {
-          for( int x = 0; x < img.cols; x++ )
-          {
-             for( int c = 0; c < 3; c++ )
-             {
-                adjustedimg.at<cv::Vec3b>(y,x)[c] = cv::saturate_cast<uchar>( alpha*( img.at<cv::Vec3b>(y,x)[c] ) + beta );
-             }
-          } 
-        }
+        //        for( int y = 0; y < img.rows; y++ )
+        //        {
+        //          for( int x = 0; x < img.cols; x++ )
+        //          {
+        //             for( int c = 0; c < 3; c++ )
+        //             {
+        //                adjustedimg.at<cv::Vec3b>(y,x)[c] =
+        //                cv::saturate_cast<uchar>( alpha*(
+        //                img.at<cv::Vec3b>(y,x)[c] ) + beta );
+        //             }
+        //          }
+        //        }
 
-	// cv::Mat denoised;
-	// cv::xphoto::dctDenoising(adjustedimg, denoised, 10);
-        
-	/*
+        // cv::Mat denoised;
+        // cv::xphoto::dctDenoising(adjustedimg, denoised, 10);
+
+        /*
          *
          *  Any image processing goes here
          *
          *
          */
 
-        cv::Mat yuvimg;
-        cv::cvtColor(adjustedimg, yuvimg, cv::COLOR_BGR2YUV_I420);
+        // cv::Mat yuvimg;
+        // cv::cvtColor(adjustedimg, yuvimg, cv::COLOR_BGR2YUV_I420);
 
         std::unique_lock<std::mutex> qlock(bufferaccess_);
         std::memcpy(internalbuffer_[fd].data(),
-                    yuvimg.data,
-                    yuvimg.size().height * yuvimg.size().width);
+                    img.data,
+                    img.size().height * img.size().width * 3);
         qlock.unlock();
         xioctl(fd, VIDIOC_QBUF, &v4l2buf);
 
@@ -320,8 +322,8 @@ Done1:
 
   for (auto fd : fds_)
   {
-    internalbuffer_[fd].resize(width * height * 3 / 2);  // yuv420  buffer
-    externalbuffer_[fd].resize(width * height * 3 / 2);  // yuv420  buffer
+    internalbuffer_[fd].resize(width * height * 3);  // rgb  buffer
+    externalbuffer_[fd].resize(width * height * 3);  // rgb  buffer
   }
 
   // Start streaming thread

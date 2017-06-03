@@ -9,6 +9,7 @@
 #include "Jcy/GpuEncoder/GpuVideoEncoder.h"
 #include "Jcy/RTPServer/RTPSession.h"
 #include "boost/asio.hpp"
+#include "opencv2/opencv.hpp"
 
 int targetwidth     = 1024;
 int targetheight    = 768;
@@ -57,8 +58,17 @@ int main(int argc, char** argv)
     const uint8_t* bits = nullptr;
 
     beg = std::chrono::high_resolution_clock::now();
-    encoder.EncodeAFrame(
-        cams.GetCurrFrame(cams.GetDeviceIDs()[rendercamid]).data());
+
+    cv::Mat yuvimg;
+    cv::Mat img(
+        targetheight,
+        targetwidth,
+        CV_8UC3,
+        const_cast<unsigned char*>(
+            cams.GetCurrFrame(cams.GetDeviceIDs()[rendercamid]).data()));
+
+    cv::cvtColor(img, yuvimg, cv::COLOR_BGR2YUV_I420);
+    encoder.EncodeAFrame(yuvimg.data);
     encoder.GetBitStream(bits, bssize);
 
     end = std::chrono::high_resolution_clock::now();
