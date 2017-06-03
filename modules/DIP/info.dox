@@ -1,0 +1,7 @@
+/*!
+  \addtogroup CodecUtility CodecUtility
+
+  The \b CodecUtility has varioud coding utilities. This includes command line parser,
+  HVR mesh container, overlaying images, create video sequence from images, video encryption
+  and video slicer.
+*/

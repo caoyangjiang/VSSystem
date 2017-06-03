@@ -19,7 +19,8 @@ target_link_libraries(${PROJECT_NAME}
                               jcy_camera
                               jcy_cpuencoder
                               jcy_gpuencoder
-                              jcy_rtpserver)
+                              jcy_rtpserver
+                              jcy_dip)
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER ${CMAKE_PROJECT_NAME}/apps)
 

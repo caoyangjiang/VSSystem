@@ -6,6 +6,7 @@
 #include <iostream>
 #include <thread>
 #include "Jcy/CpuEncoder/VideoEncoder.h"
+#include "Jcy/DIP/Tools.h"
 #include "Jcy/GpuEncoder/GpuVideoEncoder.h"
 #include "Jcy/RTPServer/RTPSession.h"
 #include "boost/asio.hpp"
@@ -59,6 +60,23 @@ int main(int argc, char** argv)
 
     beg = std::chrono::high_resolution_clock::now();
 
+    std::vector<cv::Mat> imgs(cams.GetDeviceIDs().size());
+    for (size_t i = 0; i < cams.GetDeviceIDs().size(); i++)
+    {
+      imgs[i] = cv::Mat(targetheight,
+                        targetwidth,
+                        CV_8UC3,
+                        const_cast<unsigned char*>(
+                            cams.GetCurrFrame(cams.GetDeviceIDs()[i]).data()));
+    }
+
+    cv::Mat merged;
+    jcy::Tools::Merge(imgs, 2, merged);
+    jcy::Tools::AdjustContrastBrightness(merged, 1.2, 15);
+
+    cv::namedWindow("Test", CV_WINDOW_AUTOSIZE);
+    cv::imshow("Test", merged);
+    cv::waitKey(10);
     cv::Mat yuvimg;
     cv::Mat img(
         targetheight,
@@ -98,7 +116,7 @@ int main(int argc, char** argv)
     }
 
     capcnt++;
-    if ((capcnt % 900) == 0) rendercamid = rendercamid == 0 ? 1 : 0;
+    // if ((capcnt % 900) == 0) rendercamid = rendercamid == 0 ? 1 : 0;
   }
 
   socket.close();
