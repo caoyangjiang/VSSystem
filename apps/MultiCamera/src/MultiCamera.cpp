@@ -6,7 +6,9 @@
 #include <iostream>
 #include <thread>
 #include "Jcy/CpuEncoder/VideoEncoder.h"
+#include "Jcy/DIP/CudaTools.h"
 #include "Jcy/DIP/Tools.h"
+
 #include "Jcy/GpuEncoder/GpuVideoEncoder.h"
 #include "Jcy/RTPServer/RTPSession.h"
 #include "boost/asio.hpp"
@@ -30,15 +32,15 @@ int main(int argc, char** argv)
   devices.push_back("/dev/video1");
   cams.Initialize(devices, targetframerate, targetwidth, targetheight);
 
-  int capcnt      = 0;
-  int rendercamid = 0;
+  int capcnt = 0;
+  // int rendercamid = 0;
 
   // jcy::VideoEncoder encoder;
   jcy::GpuVideoEncoder encoder;
   jcy::RTPSession rtpsession(targetframerate);
 
   if (!rtpsession.Initialize()) return -1;
-  if (!encoder.Initialize(targetwidth, targetheight, 3, targetframerate))
+  if (!encoder.Initialize(targetwidth * 2, targetheight, 3, targetframerate))
     return -1;
   boost::asio::io_service io_service;
   boost::asio::ip::udp::socket socket(
@@ -55,11 +57,10 @@ int main(int argc, char** argv)
   {
     std::chrono::duration<double, std::milli> dur;
     std::chrono::high_resolution_clock::time_point beg, end;
-    size_t bssize       = 0;
-    const uint8_t* bits = nullptr;
 
     beg = std::chrono::high_resolution_clock::now();
 
+    // Prepare for merging
     std::vector<cv::Mat> imgs(cams.GetDeviceIDs().size());
     for (size_t i = 0; i < cams.GetDeviceIDs().size(); i++)
     {
@@ -73,19 +74,15 @@ int main(int argc, char** argv)
     cv::Mat merged;
     jcy::Tools::Merge(imgs, 2, merged);
     jcy::Tools::AdjustContrastBrightness(merged, 1.2, 15);
+    // jcy::Tools::ShowImage(merged, "Test");
 
-    cv::namedWindow("Test", CV_WINDOW_AUTOSIZE);
-    cv::imshow("Test", merged);
-    cv::waitKey(10);
+    // Convert to yuv
     cv::Mat yuvimg;
-    cv::Mat img(
-        targetheight,
-        targetwidth,
-        CV_8UC3,
-        const_cast<unsigned char*>(
-            cams.GetCurrFrame(cams.GetDeviceIDs()[rendercamid]).data()));
+    cv::cvtColor(merged, yuvimg, cv::COLOR_BGR2YUV_I420);
 
-    cv::cvtColor(img, yuvimg, cv::COLOR_BGR2YUV_I420);
+    // Encode
+    size_t bssize       = 0;
+    const uint8_t* bits = nullptr;
     encoder.EncodeAFrame(yuvimg.data);
     encoder.GetBitStream(bits, bssize);
 
@@ -99,6 +96,8 @@ int main(int argc, char** argv)
     if (sleepms != 0)
       std::this_thread::sleep_for(std::chrono::milliseconds(sleepms));
 
+    // std::cout << "Time left: " << sleepms << "\r" << std::flush;
+    // RTP packing
     std::vector<std::vector<uint8_t>> pktsbytes;
     if (!rtpsession.Packetize(bits, bssize, pktsbytes))
     {
@@ -116,7 +115,6 @@ int main(int argc, char** argv)
     }
 
     capcnt++;
-    // if ((capcnt % 900) == 0) rendercamid = rendercamid == 0 ? 1 : 0;
   }
 
   socket.close();
@@ -125,3 +123,16 @@ int main(int argc, char** argv)
 
   return 0;
 }
+
+// cv::namedWindow("Test", CV_WINDOW_AUTOSIZE);
+// cv::imshow("Test", merged);
+// cv::waitKey(10);
+// cv::Mat yuvimg;
+// cv::Mat img(
+//     targetheight,
+//     targetwidth,
+//     CV_8UC3,
+//     const_cast<unsigned char*>(
+//         cams.GetCurrFrame(cams.GetDeviceIDs()[rendercamid]).data()));
+
+// if ((capcnt % 900) == 0) rendercamid = rendercamid == 0 ? 1 : 0;

@@ -3,12 +3,8 @@
 #include "Jcy/DIP/Tools.h"
 
 JCY_WINDOWS_DISABLE_ALL_WARNING
-#include <stdint.h>
-#include <x264.h>
-#include <cstring>
-#include <fstream>
 #include <iostream>
-#include <memory>
+#include <string>
 #include <vector>
 #include "opencv2/core/core.hpp"
 #include "opencv2/core/cuda.hpp"
@@ -68,4 +64,17 @@ void Tools::Merge(std::vector<cv::Mat>& imgs, int column, cv::Mat& merged)
     }
   }
 }
+
+void Tools::ShowImage(cv::Mat& img, const std::string& windowname)
+{
+  cv::namedWindow(windowname, CV_WINDOW_AUTOSIZE);
+  cv::imshow(windowname, img);
+  cv::waitKey(10);
+}
+
+void Tools::Denoising(cv::Mat& in, int noisesigma, cv::Mat& out)
+{
+  cv::xphoto::dctDenoising(in, out, noisesigma);
+}
+
 }  // namespace jcy

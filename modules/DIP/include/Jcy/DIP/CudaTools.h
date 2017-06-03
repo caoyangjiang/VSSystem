@@ -1,7 +1,7 @@
 // Copyright 2017 Caoyang Jiang
 
-#ifndef MODULES_DIP_INCLUDE_JCY_DIP_TOOLS_H_
-#define MODULES_DIP_INCLUDE_JCY_DIP_TOOLS_H_
+#ifndef MODULES_DIP_INCLUDE_JCY_DIP_CUDATOOLS_H_
+#define MODULES_DIP_INCLUDE_JCY_DIP_CUDATOOLS_H_
 
 JCY_WINDOWS_DISABLE_ALL_WARNING
 #include <string>
@@ -15,6 +15,8 @@ JCY_WINDOWS_DISABLE_ALL_WARNING
 JCY_WINDOWS_DISABLE_ALL_WARNING
 
 namespace jcy
+{
+namespace cuda
 {
 /**
  * @brief      Class for general image processing
@@ -34,33 +36,9 @@ class Tools
                                        double alpha = 1.5,
                                        int beta     = 20);
 
-  /**
-   * @brief      Merge multiple images into one.
-   *
-   * @param      imgs    Input images
-   * @param[in]  column  The number images per column. (arrangment)
-   * @param      merged  The merged
-   */
-  static void Merge(std::vector<cv::Mat>& imgs, int column, cv::Mat& merged);
-
-  /**
-   * @brief      Shows the image.
-   *
-   * @param      img         The image
-   * @param[in]  windowname  The windowname
-   */
-  static void ShowImage(cv::Mat& img, const std::string& windowname);
-
-  /**
-   * @brief      Cpu-based denoising. Not recommended for real-time application
-   *
-   * @param[in]  in          Input image
-   * @param[in]  noisesigma  The noise sigma
-   * @param[out] out         Output image
-   */
   static void Denoising(cv::Mat& in, int noisesigma, cv::Mat& out);
 };
-
+}  // namespace cuda
 }  // namespace jcy
 
-#endif  // MODULES_DIP_INCLUDE_JCY_DIP_TOOLS_H_
+#endif  // MODULES_DIP_INCLUDE_JCY_DIP_CUDATOOLS_H_

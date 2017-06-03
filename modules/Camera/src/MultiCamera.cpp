@@ -20,11 +20,7 @@ JCY_WINDOWS_DISABLE_ALL_WARNING
 #include <iostream>
 #include <string>
 #include <vector>
-// #include "libuvc/libuvc.h"
-#include "opencv2/highgui/highgui.hpp"
 #include "opencv2/opencv.hpp"
-// #include "opencv2/photo/cuda.hpp"
-// #include "opencv2/xphoto.hpp"
 JCY_WINDOWS_ENABLE_ALL_WARNING
 
 namespace jcy
@@ -102,40 +98,9 @@ void MultiCamera::StreamThread()
         if (img.data == nullptr)
         {
           // Camera sometimes will generate a corrupted mjpeg file.
-          std::cout << "[ERROR]: Parsing mjpeg failed. thread exit"
-                    << std::endl;
+          std::cout << "[Warning]: Parsing mjpeg failed. " << std::endl;
           continue;
         }
-
-        // double alpha  = 1;//contrast
-        // int beta = 10;//brightness
-        // cv::Mat adjustedimg = cv::Mat::zeros(img.size(), img.type());
-
-        //        for( int y = 0; y < img.rows; y++ )
-        //        {
-        //          for( int x = 0; x < img.cols; x++ )
-        //          {
-        //             for( int c = 0; c < 3; c++ )
-        //             {
-        //                adjustedimg.at<cv::Vec3b>(y,x)[c] =
-        //                cv::saturate_cast<uchar>( alpha*(
-        //                img.at<cv::Vec3b>(y,x)[c] ) + beta );
-        //             }
-        //          }
-        //        }
-
-        // cv::Mat denoised;
-        // cv::xphoto::dctDenoising(adjustedimg, denoised, 10);
-
-        /*
-         *
-         *  Any image processing goes here
-         *
-         *
-         */
-
-        // cv::Mat yuvimg;
-        // cv::cvtColor(adjustedimg, yuvimg, cv::COLOR_BGR2YUV_I420);
 
         std::unique_lock<std::mutex> qlock(bufferaccess_);
         std::memcpy(internalbuffer_[fd].data(),
@@ -143,11 +108,6 @@ void MultiCamera::StreamThread()
                     img.size().height * img.size().width * 3);
         qlock.unlock();
         xioctl(fd, VIDIOC_QBUF, &v4l2buf);
-
-        // std::string windowname = std::string("Window for device ") + id_[fd];
-        // cv::namedWindow(windowname, CV_WINDOW_AUTOSIZE);
-        // cv::imshow(windowname, img);
-        // cv::waitKey(10);
       }
     }
   }

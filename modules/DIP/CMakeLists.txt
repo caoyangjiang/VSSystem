@@ -10,18 +10,38 @@ endif()
 
 set(PROJECT_SRCS
 ${PROJECT_SOURCE_DIR}/src/Tools.cpp
+${PROJECT_SOURCE_DIR}/src/CudaTools.cu
 )
 
 set(PROJECT_INCS
 ${PROJECT_SOURCE_DIR}/include/Jcy/DIP/Tools.h
+${PROJECT_SOURCE_DIR}/include/Jcy/DIP/CudaTools.h
 )
 
 source_group("include" FILES ${PROJECT_INCS})
 source_group("src"     FILES ${PROJECT_SRCS})
 
-find_package( OpenCV REQUIRED )
 
-add_library(${PROJECT_NAME} SHARED ${PROJECT_SRCS} ${PROJECT_INCS})
+find_package( OpenCV REQUIRED )
+find_package( CUDA REQUIRED )
+
+if((CMAKE_CXX_COMPILER_ID MATCHES "Clang") OR CMAKE_COMPILER_IS_GNUCC
+    OR CMAKE_COMPILER_IS_GNUCXX)
+  set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+  set(CUDA_NVCC_FLAGS "-std=c++11")
+endif()
+list(APPEND CUDA_NVCC_FLAGS "-gencode arch=compute_61,code=sm_61")
+# list(APPEND CUDA_NVCC_FLAGS "-gencode arch=compute_52,code=sm_52")
+# list(APPEND CUDA_NVCC_FLAGS "-gencode arch=compute_50,code=sm_50")
+# list(APPEND CUDA_NVCC_FLAGS "-gencode arch=compute_35,code=sm_35")
+# list(APPEND CUDA_NVCC_FLAGS "-gencode arch=compute_30,code=sm_30")
+
+# for visual studio
+string(REPLACE "/w44668" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+string(REPLACE "/sdl" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+
+
+cuda_add_library(${PROJECT_NAME} SHARED ${PROJECT_SRCS} ${PROJECT_INCS})
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC
   JCY_WINDOWS_DISABLE_ALL_WARNING=${DISABLE}
@@ -40,8 +60,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
                                       ${OpenCV_INCLUDE_DIRS})
 
-target_link_libraries(${PROJECT_NAME} PUBLIC
-                            ${OpenCV_LIBS})
+target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY
   FOLDER ${CMAKE_PROJECT_NAME}/modules)
@@ -54,6 +73,7 @@ install(TARGETS ${PROJECT_NAME}
 
 install(FILES
   ${PROJECT_SOURCE_DIR}/include/Jcy/DIP/Tools.h
+  ${PROJECT_SOURCE_DIR}/include/Jcy/DIP/CudaTools.h
   DESTINATION include/Jcy/DIP)
 
 export(TARGETS
