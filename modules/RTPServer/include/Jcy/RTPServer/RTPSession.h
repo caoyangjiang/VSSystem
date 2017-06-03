@@ -32,7 +32,7 @@ struct RTPSessionParam
 class RTPSession
 {
  public:
-  RTPSession();
+  explicit RTPSession(uint32_t framerate);
   ~RTPSession();
 
   /**
@@ -146,12 +146,15 @@ class RTPSession
   }
 
  private:
-  uint32_t clock_  = 0;
-  uint16_t seqnum_ = 0;
-  uint32_t ssrc_   = 0;
+  uint32_t clock_     = 0;
+  uint16_t seqnum_    = 0;
+  uint32_t ssrc_      = 0;
+  uint32_t ts_        = 0;
+  uint32_t inc_       = 0;
+  uint32_t framerate_ = 0;
   RTPTime curr_;
   RTPTime prev_;
-
+  const uint32_t k90HZCLOCK_ = 90000;
   std::shared_ptr<RTPH264Builder> pktbuilder_;
 };
 

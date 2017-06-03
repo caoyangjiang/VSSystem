@@ -52,7 +52,7 @@ namespace jcy
 #define MTU_ADJUSTED_UDP_MAXIMUM_PAYLOAD_SIZE 1472
 
 // This the maximum payload without csrc
-#define MTU_ADJUSTED_RTP_MAXIMUM_PAYLOAD_SIZE 1460
+#define MTU_ADJUSTED_RTP_MAXIMUM_PAYLOAD_SIZE 1440
 
 }  // namespace jcy
 

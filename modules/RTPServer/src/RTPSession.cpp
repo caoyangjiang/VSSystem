@@ -15,7 +15,7 @@ JCY_WINDOWS_ENABLE_ALL_WARNING
 
 namespace jcy
 {
-RTPSession::RTPSession()
+RTPSession::RTPSession(uint32_t framerate)
 {
   std::default_random_engine generator;
   std::uniform_int_distribution<int> dist(0, std::numeric_limits<int>::max());
@@ -25,9 +25,12 @@ RTPSession::RTPSession()
   generator.seed(static_cast<uint32_t>(dtn.count()));
 
   // Generate random ssrc and sequence number
-  clock_  = RTP_H264_CLOCK_RATE;
-  seqnum_ = static_cast<uint16_t>(dist(generator));
-  ssrc_   = static_cast<uint32_t>(dist(generator));
+  clock_     = RTP_H264_CLOCK_RATE;
+  seqnum_    = static_cast<uint16_t>(dist(generator));
+  ssrc_      = static_cast<uint32_t>(dist(generator));
+  framerate_ = framerate;
+  ts_        = static_cast<uint32_t>(dist(generator));
+  inc_       = k90HZCLOCK_ / framerate;
 }
 
 RTPSession::~RTPSession()
@@ -66,7 +69,7 @@ bool RTPSession::Packetize(const uint8_t* bitstream,
 
   // Convert NTP absolute time into h264 timestamp measured in ticks from a 90
   // KHz clock. This is possible because on the timestamp difference matters
-  uint32_t ts = static_cast<uint32_t>(curr_.GetCounts() * clock_ / 1000000);
+  // uint32_t ts = static_cast<uint32_t>(curr_.GetCounts() * clock_ / 1000000);
 
   // If input bitstream has multiple nalus, they are split
   std::vector<Nalu> nalus;
@@ -78,16 +81,17 @@ bool RTPSession::Packetize(const uint8_t* bitstream,
     {
       std::vector<Nalu> frags;
       nalus[c].Fragment(MTU_ADJUSTED_RTP_MAXIMUM_PAYLOAD_SIZE, frags);
-      seqnum_ = pktbuilder_->BuildFragment(frags, ts, seqnum_, pkts);
+      seqnum_ = pktbuilder_->BuildFragment(frags, ts_, seqnum_, pkts);
     }
     else
     {
       RTPPacket pkt;
-      seqnum_ = pktbuilder_->BuildSingle(nalus[c], ts, seqnum_, pkt);
+      seqnum_ = pktbuilder_->BuildSingle(nalus[c], ts_, seqnum_, pkt);
       pkts.push_back(pkt);
     }
   }
 
+  ts_ += inc_;
   return true;
 }
 

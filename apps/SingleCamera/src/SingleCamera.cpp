@@ -55,7 +55,7 @@ int main(int argc, char** argv)
   int capcnt = 0;
   // jcy::VideoEncoder encoder;
   jcy::GpuVideoEncoder encoder;
-  jcy::RTPSession rtpsession;
+  jcy::RTPSession rtpsession(targetframerate);
 
   if (!rtpsession.Initialize()) return -1;
   if (!encoder.Initialize(targetwidth, targetheight, 1, targetframerate))

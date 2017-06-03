@@ -33,7 +33,7 @@ int main(int argc, char** argv)
 
   // jcy::VideoEncoder encoder;
   jcy::GpuVideoEncoder encoder;
-  jcy::RTPSession rtpsession;
+  jcy::RTPSession rtpsession(targetframerate);
 
   if (!rtpsession.Initialize()) return -1;
   if (!encoder.Initialize(targetwidth, targetheight, 3, targetframerate))
@@ -61,6 +61,16 @@ int main(int argc, char** argv)
         cams.GetCurrFrame(cams.GetDeviceIDs()[rendercamid]).data());
     encoder.GetBitStream(bits, bssize);
 
+    end = std::chrono::high_resolution_clock::now();
+    dur = end - beg;
+
+    int durms = dur.count();
+    int sleepms =
+        durms >= 1000 / targetframerate ? 0 : (1000 / targetframerate - durms);
+
+    if (sleepms != 0)
+      std::this_thread::sleep_for(std::chrono::milliseconds(sleepms));
+
     std::vector<std::vector<uint8_t>> pktsbytes;
     if (!rtpsession.Packetize(bits, bssize, pktsbytes))
     {
@@ -76,16 +86,6 @@ int main(int argc, char** argv)
             remoteendpoint);
       }
     }
-
-    end = std::chrono::high_resolution_clock::now();
-    dur = end - beg;
-
-    int durms = dur.count();
-    int sleepms =
-        durms >= 1000 / targetframerate ? 0 : (1000 / targetframerate - durms);
-
-    if (sleepms != 0)
-      std::this_thread::sleep_for(std::chrono::milliseconds(sleepms));
 
     capcnt++;
     if ((capcnt % 900) == 0) rendercamid = rendercamid == 0 ? 1 : 0;
