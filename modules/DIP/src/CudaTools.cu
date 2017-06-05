@@ -3,6 +3,7 @@
 #include "Jcy/DIP/CudaTools.h"
 
 JCY_WINDOWS_DISABLE_ALL_WARNING
+#include <cstdio>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -18,28 +19,60 @@ namespace jcy
 {
 namespace cuda
 {
-__global__ static void CUDAKernelAddOneToVector(int* data)
+__global__ static void AdjustContrastBrightnessKernel(
+    uint8_t* data, int width, int height, double alpha, int beta)
 {
-  const int x  = blockIdx.x * blockDim.x + threadIdx.x;
-  const int y  = blockIdx.y * blockDim.y + threadIdx.y;
-  const int mx = gridDim.x * blockDim.x;
+  const int x = blockIdx.x * blockDim.x + threadIdx.x;
+  const int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-  data[y * mx + x] = data[y * mx + x] + 1;
+  if ((x < width) && (y < height))
+  {
+    for (int c = 0; c < 3; c++)
+    {
+      uint8_t* channel = data + width * height * c;
+      uint32_t pix     = *(channel + (x + y * width));
+
+      pix                = alpha * pix + beta;
+      if (pix > 255) pix = 255;
+
+      // pix = 255 * (pix >= 255) + pix * (pix < 255);
+
+      // if(x==0)
+      // {
+      //   std::printf("thread 0: %d\n",pix);
+      // }
+      *(channel + (x + y * width)) = static_cast<uint8_t>(pix);
+    }
+  }
 }
 
 void Tools::AdjustContrastBrightness(cv::Mat& img, double alpha, int beta)
 {
-  for (int y = 0; y < img.rows; y++)
-  {
-    for (int x = 0; x < img.cols; x++)
-    {
-      for (int c = 0; c < 3; c++)
-      {
-        img.at<cv::Vec3b>(y, x)[c] = cv::saturate_cast<uchar>(
-            alpha * (img.at<cv::Vec3b>(y, x)[c]) + beta);
-      }
-    }
-  }
+  int blockdimx, blockdimy, griddimx, griddimy;
+
+  blockdimx = 32;
+  blockdimy = 16;
+  griddimx  = (img.size().width + blockdimx - 1) / blockdimx;
+  griddimy  = (img.size().height + blockdimy - 1) / blockdimy;
+
+  dim3 blks(griddimx, griddimy);
+  dim3 threads(blockdimx, blockdimy);
+
+  uint8_t* dpix = nullptr;
+  cudaMalloc(reinterpret_cast<void**>(&dpix),
+             img.size().width * img.size().height * 3);
+  cudaMemcpy(dpix,
+             img.data,
+             img.size().width * img.size().height * 3,
+             cudaMemcpyHostToDevice);
+  AdjustContrastBrightnessKernel<<<blks, threads>>>(
+      dpix, img.size().width, img.size().height, alpha, beta);
+  cudaDeviceSynchronize();
+  cudaMemcpy(img.data,
+             dpix,
+             img.size().width * img.size().height * 3,
+             cudaMemcpyDeviceToHost);
+  cudaFree(dpix);
 }
 
 }  // namespace cuda

@@ -45,7 +45,7 @@ int main(int argc, char**)
 
   std::vector<std::string> hosts;
   hosts.push_back("127.0.0.1");
-  hosts.push_back("192.168.1.4");
+  // hosts.push_back("192.168.1.4");
 
   boost::asio::io_service io_service;
   boost::asio::ip::udp::socket socket(
@@ -84,7 +84,7 @@ int main(int argc, char**)
 
     cv::Mat merged;
     jcy::Tools::Merge(imgs, 2, merged);
-    jcy::Tools::AdjustContrastBrightness(merged, 1.2, 15);
+    jcy::cuda::Tools::AdjustContrastBrightness(merged, 1.2, 15);
     // jcy::Tools::ShowImage(merged, "Test");
 
     // Convert to yuv
@@ -97,7 +97,6 @@ int main(int argc, char**)
     encoder.EncodeAFrame(yuvimg.data);
     encoder.GetBitStream(bits, bssize);
 
-    // std::cout << "Time left: " << sleepms << "\r" << std::flush;
     // RTP packing
     std::vector<std::vector<uint8_t>> pktsbytes;
     if (!rtpsession.Packetize(bits, bssize, pktsbytes))
@@ -127,6 +126,8 @@ int main(int argc, char**)
 
     if (sleepms != 0)
       std::this_thread::sleep_for(std::chrono::milliseconds(sleepms));
+
+    std::cout << "Time left: " << sleepms << std::endl;
 
     capcnt++;
   }
