@@ -199,6 +199,9 @@ bool GpuVideoEncoder::Initialize(int width,
   encodecfg_.encodeCodecConfig.h264Config.maxNumRefFrames = 16;
   encodecfg_.encodeCodecConfig.h264Config.chromaFormatIDC = 1;  // YUV420
   encodecfg_.encodeCodecConfig.h264Config.disableDeblockingFilterIDC = 0;
+  encodecfg_.encodeCodecConfig.h264Config.repeatSPSPPS               = 1;
+  encodecfg_.encodeCodecConfig.h264Config.outputAUD                  = 1;
+  encodecfg_.encodeCodecConfig.h264Config.idrPeriod                  = gopsize_;
   // encodecfg_.encodeCodecConfig.h264Config.sliceMode                  = 3;
   // encodecfg_.encodeCodecConfig.h264Config.sliceModeData              = 1;
   encodecfg_.encodeCodecConfig.h264Config.fmoMode = NV_ENC_H264_FMO_DISABLE;

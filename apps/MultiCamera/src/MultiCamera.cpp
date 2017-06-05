@@ -18,9 +18,9 @@ int targetwidth     = 1024;
 int targetheight    = 768;
 int targetframerate = 30;
 
-int main(int argc, char** argv)
+int main(int argc, char**)
 {
-  if (argc < 2)
+  if (argc < 1)
   {
     std::cout << "RTPServer DEST_IP" << std::endl;
     return false;
@@ -42,15 +42,26 @@ int main(int argc, char** argv)
   if (!rtpsession.Initialize()) return -1;
   if (!encoder.Initialize(targetwidth * 2, targetheight, 3, targetframerate))
     return -1;
+
+  std::vector<std::string> hosts;
+  hosts.push_back("127.0.0.1");
+  hosts.push_back("192.168.1.4");
+
   boost::asio::io_service io_service;
   boost::asio::ip::udp::socket socket(
       io_service,
       boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 0));
   boost::asio::ip::udp::resolver resolver(io_service);
-  boost::asio::ip::udp::resolver::query query(
-      boost::asio::ip::udp::v4(), argv[1], "5004");
-  boost::asio::ip::udp::resolver::iterator it   = resolver.resolve(query);
-  boost::asio::ip::udp::endpoint remoteendpoint = *it;
+  std::vector<boost::asio::ip::udp::endpoint> endpoints;
+
+  for (const auto& host : hosts)
+  {
+    boost::asio::ip::udp::resolver::query query(
+        boost::asio::ip::udp::v4(), host, "5004");
+    boost::asio::ip::udp::resolver::iterator it   = resolver.resolve(query);
+    boost::asio::ip::udp::endpoint remoteendpoint = *it;
+    endpoints.push_back(remoteendpoint);
+  }
 
   cams.StartCapture();
   while (true)
@@ -86,16 +97,6 @@ int main(int argc, char** argv)
     encoder.EncodeAFrame(yuvimg.data);
     encoder.GetBitStream(bits, bssize);
 
-    end = std::chrono::high_resolution_clock::now();
-    dur = end - beg;
-
-    int durms = dur.count();
-    int sleepms =
-        durms >= 1000 / targetframerate ? 0 : (1000 / targetframerate - durms);
-
-    if (sleepms != 0)
-      std::this_thread::sleep_for(std::chrono::milliseconds(sleepms));
-
     // std::cout << "Time left: " << sleepms << "\r" << std::flush;
     // RTP packing
     std::vector<std::vector<uint8_t>> pktsbytes;
@@ -108,11 +109,24 @@ int main(int argc, char** argv)
     {
       for (size_t p = 0; p < pktsbytes.size(); p++)
       {
-        socket.send_to(
-            boost::asio::buffer(pktsbytes[p].data(), pktsbytes[p].size()),
-            remoteendpoint);
+        for (auto& endpoint : endpoints)
+        {
+          socket.send_to(
+              boost::asio::buffer(pktsbytes[p].data(), pktsbytes[p].size()),
+              endpoint);
+        }
       }
     }
+
+    end = std::chrono::high_resolution_clock::now();
+    dur = end - beg;
+
+    int durms = dur.count();
+    int sleepms =
+        durms >= 1000 / targetframerate ? 0 : (1000 / targetframerate - durms);
+
+    if (sleepms != 0)
+      std::this_thread::sleep_for(std::chrono::milliseconds(sleepms));
 
     capcnt++;
   }
