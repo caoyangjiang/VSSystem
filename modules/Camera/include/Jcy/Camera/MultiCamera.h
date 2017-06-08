@@ -17,12 +17,28 @@ JCY_WINDOWS_ENABLE_ALL_WARNING
 
 namespace jcy
 {
+/**
+ * @brief      Class for multi camera. Multicamera is capable of handling
+ *             multiple cameras simultaneously.  Capturing is processed on a
+ *             separate thread. User is responsible for making sure that all
+ *             input devices supports the input width, height, and framrate,
+ */
 class MultiCamera
 {
  public:
   MultiCamera();
   ~MultiCamera();
 
+  /**
+   * @brief      Initialize multi camera capturer.
+   *a
+   * @param[in]  devices    The devices in string format such "/dev/video0"
+   * @param[in]  framerate  The target framerate. (Do not have any effect yet)
+   * @param[in]  width      The target captured image width
+   * @param[in]  height     The target captured image height
+   *
+   * @return     True if initialize successful, false otherwise.
+   */
   bool Initialize(const std::vector<std::string>& devices,
                   int framerate,
                   int width,
@@ -34,12 +50,14 @@ class MultiCamera
   void Destroy();
 
   /**
-   * @brief      Starts a capture.
+   * @brief      Starts a capture. This is none blocking call and returns
+   * immediately.
    */
   void StartCapture();
 
   /**
-   * @brief      Stops a capture.
+   * @brief      Stops a capture.  This is none blocking call and returns
+   * immediately.
    */
   void StopCapture();
 
@@ -65,7 +83,8 @@ class MultiCamera
   int GetFrameRate() const;
 
   /**
-   * @brief      Gets the device id by name.
+   * @brief      Each device will be assigned with a integer ID once it opens
+   *             successfuly. This call gets the device id by the device name.
    *
    * @param[in]  dev   The development
    *
@@ -74,14 +93,14 @@ class MultiCamera
   int GetDeviceIDByName(const std::string& dev) const;
 
   /**
-   * @brief      Gets the curr frame.
+   * @brief      Gets the curr frame in RGB format.
    *
    * @return     The curr frame.
    */
   const std::vector<uint8_t>& GetCurrFrame(int deviceid);
 
   /**
-   * @brief      Gets the device IDs.
+   * @brief      Gets the allocated device IDs.
    *
    * @return     The device IDs.
    */

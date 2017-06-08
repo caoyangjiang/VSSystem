@@ -3,3 +3,4 @@ project(apps)
 
 add_subdirectory(SingleCamera)
 add_subdirectory(MultiCamera)
+add_subdirectory(DctDenoise)

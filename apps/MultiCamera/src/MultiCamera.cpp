@@ -44,7 +44,8 @@ int main(int argc, char**)
     return -1;
 
   std::vector<std::string> hosts;
-  hosts.push_back("127.0.0.1");
+  hosts.push_back("10.8.0.10");
+  // hosts.push_back("127.0.0.1");
   // hosts.push_back("192.168.1.4");
 
   boost::asio::io_service io_service;
@@ -64,7 +65,8 @@ int main(int argc, char**)
   }
 
   cams.StartCapture();
-  while (true)
+  while (capcnt < 900)
+  //while (true)
   {
     std::chrono::duration<double, std::milli> dur;
     std::chrono::high_resolution_clock::time_point beg, end;
@@ -84,9 +86,13 @@ int main(int argc, char**)
 
     cv::Mat merged;
     jcy::Tools::Merge(imgs, 2, merged);
-    jcy::cuda::Tools::AdjustContrastBrightness(merged, 1.2, 15);
+    jcy::cuda::Tools::AdjustContrastBrightness(merged, 1.2, 20);
     // jcy::Tools::ShowImage(merged, "Test");
-
+    
+    std::string name = "./Save/Image" + std::to_string(capcnt) + ".jpg";
+    cv::imwrite(name, imgs[0]);
+    
+    // jcy::Tools::ShowImage(imgs[1], "Test");
     // Convert to yuv
     cv::Mat yuvimg;
     cv::cvtColor(merged, yuvimg, cv::COLOR_BGR2YUV_I420);
@@ -127,7 +133,7 @@ int main(int argc, char**)
     if (sleepms != 0)
       std::this_thread::sleep_for(std::chrono::milliseconds(sleepms));
 
-    std::cout << "Time left: " << sleepms << std::endl;
+    // std::cout << "Time left: " << sleepms << std::endl;
 
     capcnt++;
   }
@@ -138,16 +144,3 @@ int main(int argc, char**)
 
   return 0;
 }
-
-// cv::namedWindow("Test", CV_WINDOW_AUTOSIZE);
-// cv::imshow("Test", merged);
-// cv::waitKey(10);
-// cv::Mat yuvimg;
-// cv::Mat img(
-//     targetheight,
-//     targetwidth,
-//     CV_8UC3,
-//     const_cast<unsigned char*>(
-//         cams.GetCurrFrame(cams.GetDeviceIDs()[rendercamid]).data()));
-
-// if ((capcnt % 900) == 0) rendercamid = rendercamid == 0 ? 1 : 0;

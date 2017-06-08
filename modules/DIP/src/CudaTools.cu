@@ -33,9 +33,9 @@ __global__ static void AdjustContrastBrightnessKernel(
       uint32_t pix     = *(channel + (x + y * width));
 
       pix                = alpha * pix + beta;
-      if (pix > 255) pix = 255;
+      // if (pix > 255) pix = 255;
 
-      // pix = 255 * (pix >= 255) + pix * (pix < 255);
+      pix = 255 * (pix >= 255) + pix * (pix < 255);
 
       // if(x==0)
       // {
